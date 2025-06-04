@@ -1,0 +1,40 @@
+,type,mun_name,name,n_bike_stations
+0,FeatureCollection,['Azcapotzalco'],['San Alvaro'],15
+1,FeatureCollection,['Benito Juárez'],['San Simon Ticumac'],16
+2,FeatureCollection,['Benito Juárez'],['Del Valle Vii'],18
+3,FeatureCollection,['Miguel Hidalgo'],['Rincon Del Bosque'],37
+4,FeatureCollection,['Miguel Hidalgo'],['Tlaxpana'],18
+5,FeatureCollection,['Miguel Hidalgo'],['Escandon I'],13
+6,FeatureCollection,['Álvaro Obregón'],['San Angel'],17
+7,FeatureCollection,['Benito Juárez'],['Napoles'],40
+8,FeatureCollection,['Cuauhtémoc'],['Centro V'],16
+9,FeatureCollection,['Cuauhtémoc'],['Doctores Iii'],18
+10,FeatureCollection,['Miguel Hidalgo'],['Anahuac Dos Lagos'],8
+11,FeatureCollection,['Benito Juárez'],['Portales Iii'],18
+12,FeatureCollection,['Cuauhtémoc'],['Centro Viii'],9
+13,FeatureCollection,['Cuauhtémoc'],['Condesa'],37
+14,FeatureCollection,['Azcapotzalco'],['San Bernabe (Barr)'],13
+15,FeatureCollection,['Miguel Hidalgo'],['Popotla I'],9
+16,FeatureCollection,['Benito Juárez'],['Insurgentes San Borja'],27
+17,FeatureCollection,['Benito Juárez'],['Sta Cruz Atoyac'],15
+18,FeatureCollection,['Cuauhtémoc'],['San Rafael Ii'],17
+19,FeatureCollection,['Coyoacán'],['San Mateo (Barr)'],18
+20,FeatureCollection,['Benito Juárez'],['Narvarte Iii'],29
+21,FeatureCollection,['Cuauhtémoc'],['Algarin'],19
+22,FeatureCollection,['Cuauhtémoc'],['Juarez'],24
+23,FeatureCollection,['Miguel Hidalgo'],['Anzures'],9
+24,FeatureCollection,['Miguel Hidalgo'],['Los Morales (Polanco)'],8
+25,FeatureCollection,['Miguel Hidalgo'],['San Miguel Chapultepec I'],10
+26,FeatureCollection,['Cuauhtémoc'],['Buenavista Ii'],7
+27,FeatureCollection,['Cuauhtémoc'],['Santa Maria La Ribera I'],20
+28,FeatureCollection,['Benito Juárez'],['Nonoalco'],11
+29,FeatureCollection,['Benito Juárez'],['San Jose Insurgentes'],15
+30,FeatureCollection,['Cuauhtémoc'],['Roma Norte I'],26
+31,FeatureCollection,['Cuauhtémoc'],['Roma Sur I'],26
+32,FeatureCollection,['Cuauhtémoc'],['Centro Vi'],5
+33,FeatureCollection,['Miguel Hidalgo'],['Morales Seccion Palmas (Polanco)'],14
+34,FeatureCollection,['Miguel Hidalgo'],['Anahuac I'],13
+35,FeatureCollection,['Cuauhtémoc'],['Obrera Iii'],13
+36,FeatureCollection,['Benito Juárez'],['San Pedro De Los  Pinos'],9
+37,FeatureCollection,['Cuauhtémoc'],['Cuauhtemoc'],21
+38,FeatureCollection,['Coyoacán'],['Del Carmen'],19
