@@ -1,53 +1,62 @@
 import pandas as pd
-import matplotlib.pyplot as plt
+import streamlit as st
 import seaborn as sns
+import matplotlib.pyplot as plt
 
-# Cargar muestras para evitar exceso de memoria
-cdmx = pd.read_csv("./data/cdmx_data_series.csv", nrows=10000)
-lyon = pd.read_csv("./data/lyon_data_series.csv", nrows=10000)
+st.set_page_config(layout="wide")
+st.title("Análisis Interactivo de Bicicletas Públicas: CDMX y Lyon")
 
-# Convertir a formato largo (occupation_0 a occupation_23)
+# Cargar datos
+
+
+@st.cache_data
+def cargar_datos():
+    cdmx = pd.read_csv("cdmx_data_series.csv", nrows=10000)
+    lyon = pd.read_csv("lyon_data_series.csv", nrows=10000)
+    cdmx["ciudad"] = "CDMX"
+    lyon["ciudad"] = "Lyon"
+    return pd.concat([cdmx, lyon], ignore_index=True)
+
+
+df = cargar_datos()
+
+# Unir y transformar
 occupation_cols = [f'occupation_{i}' for i in range(24)]
-cdmx_long = cdmx.melt(
+df_long = df.melt(
     id_vars=['zone_id', 'lat', 'lon', 'tmin', 'tmax',
-             'prcp', 'wspd', 'weekday', 'holiday'],
+             'prcp', 'wspd', 'weekday', 'holiday', 'ciudad'],
     value_vars=occupation_cols,
     var_name='hour',
     value_name='occupation'
 )
-cdmx_long['hour'] = cdmx_long['hour'].str.extract('(\d+)').astype(int)
+df_long['hour'] = df_long['hour'].str.extract('(\d+)').astype(int)
 
-lyon_long = lyon.melt(
-    id_vars=['zone_id', 'lat', 'lon', 'tmin', 'tmax',
-             'prcp', 'wspd', 'weekday', 'holiday'],
-    value_vars=occupation_cols,
-    var_name='hour',
-    value_name='occupation'
-)
-lyon_long['hour'] = lyon_long['hour'].str.extract('(\d+)').astype(int)
+# Filtros
+ciudad = st.sidebar.selectbox("Ciudad", df_long['ciudad'].unique())
+hora_min, hora_max = st.sidebar.slider("Rango de horas", 0, 23, (6, 20))
+festivo = st.sidebar.selectbox("¿Es día festivo?", ["Ambos", "Sí", "No"])
+temp_min = st.sidebar.slider("Temperatura mínima", float(
+    df_long['tmin'].min()), float(df_long['tmin'].max()), (10.0, 30.0))
 
-# Ocupación promedio por hora
-cdmx_hour_avg = cdmx_long.groupby('hour')['occupation'].mean()
-lyon_hour_avg = lyon_long.groupby('hour')['occupation'].mean()
+# Aplicar filtros
+df_filtrado = df_long[df_long['ciudad'] == ciudad]
+df_filtrado = df_filtrado[(df_filtrado['hour'] >= hora_min) & (
+    df_filtrado['hour'] <= hora_max)]
+df_filtrado = df_filtrado[(df_filtrado['tmin'] >= temp_min[0]) & (
+    df_filtrado['tmin'] <= temp_min[1])]
+if festivo == "Sí":
+    df_filtrado = df_filtrado[df_filtrado['holiday'] == 1]
+elif festivo == "No":
+    df_filtrado = df_filtrado[df_filtrado['holiday'] == 0]
 
-# Correlaciones clima-ocupación
-cdmx_corr = cdmx_long[['tmin', 'tmax', 'prcp', 'wspd', 'occupation']].corr()[
-    'occupation'].drop('occupation')
-lyon_corr = lyon_long[['tmin', 'tmax', 'prcp', 'wspd', 'occupation']].corr()[
-    'occupation'].drop('occupation')
+# Mostrar resultado
+st.subheader(f"Ocupación Promedio por Hora - {ciudad}")
+ocup_por_hora = df_filtrado.groupby('hour')['occupation'].mean()
+fig, ax = plt.subplots()
+sns.lineplot(x=ocup_por_hora.index, y=ocup_por_hora.values, ax=ax)
+ax.set_xlabel("Hora")
+ax.set_ylabel("Ocupación Promedio")
+st.pyplot(fig)
 
-# Imprimir correlaciones
-print("Correlación CDMX:\n", cdmx_corr)
-print("\nCorrelación Lyon:\n", lyon_corr)
-
-# Gráfica de ocupación promedio por hora
-plt.figure(figsize=(12, 5))
-sns.lineplot(data=cdmx_hour_avg, label="CDMX")
-sns.lineplot(data=lyon_hour_avg, label="Lyon")
-plt.title("Ocupación Promedio por Hora")
-plt.xlabel("Hora del día")
-plt.ylabel("Ocupación Promedio")
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.show()
+st.subheader("Datos filtrados")
+st.dataframe(df_filtrado.head(100))
