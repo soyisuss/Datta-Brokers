@@ -44,7 +44,7 @@ df_long = df.melt(
     var_name='hour',
     value_name='occupation'
 )
-df_long['hour'] = df_long['hour'].str.extract('(\d+)').astype(int)
+df_long['hour'] = df_long['hour'].astype(str).str.extract('(\d+)').astype(int)
 df_long = df_long.dropna(subset=['occupation'])
 
 # Filtros
