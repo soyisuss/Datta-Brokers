@@ -9,7 +9,6 @@ st.title("Análisis Interactivo de Bicicletas Públicas: CDMX y Lyon")
 
 # Cargar datos
 
-
 @st.cache_data
 def cargar_datos():
     try:
