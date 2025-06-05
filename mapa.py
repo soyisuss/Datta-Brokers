@@ -4,7 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pydeck as pdk
 
-st.set_page_config(layout="wide")
+# st.set_page_config(layout="wide")
 st.title("Análisis Interactivo de Bicicletas Públicas: CDMX y Lyon")
 
 # Cargar datos

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from xgboost import XGBClassifier
 
-st.set_page_config(layout="wide")
+#st.set_page_config(layout="wide")
 st.title("🚲 Análisis de Accidentes vs Ocupación de Bicicletas Públicas")
 
 # --- Cargar Datos ---
