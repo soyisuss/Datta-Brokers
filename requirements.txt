@@ -2,3 +2,5 @@ pandas==2.2.2
 matplotlib==3.8.4
 seaborn==0.13.2
 streamlit==1.35.0
+pydeck
+scikit-learn
