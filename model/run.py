@@ -10,7 +10,7 @@ def main():
     restock = RestockPredictor()
 
     # Parámetros configurables
-    HOUR = 14  # Hora objetivo (14:00)
+    HOUR = 20  # Hora objetivo (14:00)
     CITY = "CDMX"  # Ciudad
     THRESHOLD = 75  # Percentil para zonas de alta demanda
 

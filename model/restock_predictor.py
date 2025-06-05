@@ -26,7 +26,22 @@ class RestockPredictor:
         if self.predictor.model is None:
             if not self.load_model():
                 return None
-
+        
+        # Verificar que tenemos zonas guardadas
+        if not hasattr(self.predictor, 'unique_zones') or not self.predictor.unique_zones:
+            print("❌ Error: No hay datos de zonas en el modelo")
+            print("   Ejecuta primero: python retrain_model.py")
+            return None
+        
+        # Mostrar información de debug
+        print(f"📍 Total de zonas disponibles: {len(self.predictor.unique_zones)}")
+        
+        ciudades_disponibles = set()
+        for zona in self.predictor.unique_zones:
+            ciudades_disponibles.add(zona.get('ciudad', 'Sin ciudad'))
+        
+        print(f"🏙️ Ciudades disponibles: {list(ciudades_disponibles)}")
+        
         # Condiciones meteorológicas por defecto
         if weather_conditions is None:
             weather_conditions = {
@@ -37,19 +52,28 @@ class RestockPredictor:
                 'weekday': datetime.now().weekday(),
                 'holiday': 0
             }
-
+        
         print(f"Prediciendo ocupación para hora {target_hour}:00 en {city}")
-
-        # Filtrar zonas por ciudad
-        city_zones = [
-            zone for zone in self.predictor.unique_zones if zone['ciudad'] == city]
-
+        
+        # Filtrar zonas por ciudad (más flexible)
+        city_zones = []
+        for zone in self.predictor.unique_zones:
+            zone_city = zone.get('ciudad', '').upper()
+            if city.upper() in zone_city or zone_city in city.upper():
+                city_zones.append(zone)
+        
         if not city_zones:
             print(f"❌ No se encontraron zonas para la ciudad: {city}")
+            print(f"   Ciudades disponibles: {list(ciudades_disponibles)}")
+            print(f"   Ejemplo de zonas:")
+            for i, zona in enumerate(self.predictor.unique_zones[:3]):
+                print(f"     Zona {zona.get('zone_id', 'N/A')}: {zona.get('ciudad', 'Sin ciudad')}")
             return None
-
+        
+        print(f"✅ Encontradas {len(city_zones)} zonas para {city}")
+        
         predictions = []
-
+        
         for zone in city_zones:
             # Crear input para predicción
             zone_input = {
@@ -60,7 +84,12 @@ class RestockPredictor:
                 'ciudad': city,
                 **weather_conditions
             }
-
+            
+            # Agregar otros campos de la zona si existen
+            for key, value in zone.items():
+                if key not in zone_input and key not in ['zone_id', 'lat', 'lon', 'ciudad']:
+                    zone_input[key] = value
+            
             try:
                 pred = self.predictor.predict_custom([zone_input])
                 predictions.append({
@@ -74,7 +103,12 @@ class RestockPredictor:
             except Exception as e:
                 print(f"Error prediciendo zona {zone['zone_id']}: {e}")
                 continue
-
+        
+        if not predictions:
+            print("❌ No se pudieron generar predicciones para ninguna zona")
+            return None
+        
+        print(f"✅ Predicciones generadas para {len(predictions)} zonas")
         return sorted(predictions, key=lambda x: x['predicted_occupation'], reverse=True)
 
     def generate_restock_plan(self, target_hour, city="CDMX", weather_conditions=None,

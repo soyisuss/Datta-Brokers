@@ -91,30 +91,46 @@ class XGBoostPredictor:
         """Entrenar modelo con cross validation - MODIFICADO"""
         X, y = self.prepare_data(df, target_column)
         
-        # Guardar información de zonas para predicciones futuras
+        # Guardar información de zonas para predicciones futuras - MEJORADO
+        print("Guardando información de zonas...")
+        
+        # Verificar qué ciudades tenemos
+        ciudades_unicas = df['ciudad'].unique() if 'ciudad' in df.columns else ['CDMX']
+        print(f"Ciudades encontradas: {ciudades_unicas}")
+        
+        # Agrupar zonas con información promedio
+        zone_columns = ['zone_id', 'lat', 'lon']
+        if 'ciudad' in df.columns:
+            zone_columns.append('ciudad')
+            
+        agg_dict = {}
+        for col in df.columns:
+            if col not in zone_columns + [target_column, 'hour']:
+                if col in ['tmin', 'tmax', 'prcp', 'wspd']:
+                    agg_dict[col] = 'mean'
+                elif col in ['weekday', 'holiday']:
+                    agg_dict[col] = 'first'
+        
         zone_info = df.groupby('zone_id').agg({
             'lat': 'first',
             'lon': 'first', 
-            'ciudad': 'first',
-            'tmin': 'mean',
-            'tmax': 'mean',
-            'prcp': 'mean',
-            'wspd': 'mean',
-            'weekday': 'first',
-            'holiday': 'first'
+            'ciudad': 'first' if 'ciudad' in df.columns else lambda x: 'CDMX',
+            **agg_dict
         }).reset_index()
         
         self.unique_zones = zone_info.to_dict('records')
+        print(f"Zonas guardadas: {len(self.unique_zones)}")
+        print(f"Ejemplo de zona: {self.unique_zones[0] if self.unique_zones else 'Ninguna'}")
         
         # Dividir datos
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=random_state
         )
-
+        
         # Escalar características
         X_train_scaled = self.scaler.fit_transform(X_train)
         X_test_scaled = self.scaler.transform(X_test)
-
+        
         # Configurar modelo XGBoost
         self.model = xgb.XGBRegressor(
             n_estimators=100,
@@ -123,19 +139,19 @@ class XGBoostPredictor:
             random_state=random_state,
             n_jobs=-1
         )
-
+        
         # Cross validation
         cv_scores = cross_val_score(
-            self.model, X_train_scaled, y_train,
+            self.model, X_train_scaled, y_train, 
             cv=n_splits, scoring='r2'
         )
-
+        
         # Entrenar modelo final
         self.model.fit(X_train_scaled, y_train)
-
+        
         # Predicciones en test
         y_pred = self.model.predict(X_test_scaled)
-
+        
         # Métricas
         results = {
             'cv_scores': cv_scores,
@@ -148,13 +164,12 @@ class XGBoostPredictor:
             'y_test': y_test,
             'y_pred': y_pred
         }
-
-        print(
-            f"Cross Validation R² Score: {results['cv_mean']:.4f} (+/- {results['cv_std']*2:.4f})")
+        
+        print(f"Cross Validation R² Score: {results['cv_mean']:.4f} (+/- {results['cv_std']*2:.4f})")
         print(f"Test R² Score: {results['test_r2']:.4f}")
         print(f"Test RMSE: {results['test_rmse']:.4f}")
         print(f"Test MAE: {results['test_mae']:.4f}")
-
+        
         return results
 
     def predict_custom(self, input_data):
