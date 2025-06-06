@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from xgboost import XGBClassifier
 
-#st.set_page_config(layout="wide")
-st.title("🚲 Análisis de Accidentes vs Ocupación de Bicicletas Públicas")
+st.title("Análisis de Accidentes vs Ocupación de Bicicletas Públicas")
 
 # --- Cargar Datos ---
 @st.cache_data
@@ -64,7 +63,7 @@ def cargar_datos():
 df = cargar_datos()
 
 # --- Sidebar ---
-st.sidebar.title("🎛️ Filtros")
+st.sidebar.title("Filtros")
 hora_min, hora_max = st.sidebar.slider("Rango de hora", 0, 23, (6, 22))
 ocup_min, ocup_max = st.sidebar.slider("Rango ocupación (%)", 0.0, 1.0, (0.0, 1.0))
 
@@ -84,14 +83,14 @@ X = df_riesgo[["hora", "occupation", "prcp", "tmin", "tmax"]]
 y = (df_riesgo["occupation"] > 0.5).astype(int)  # Suponiendo que >50% ocupación es riesgo
 
 # Entrenamiento del modelo
-model = XGBClassifier()
+model = XGBClassifier(learning_rate=1, n_estiamators= 2, max_depth=4)
 model.fit(X, y)
 
 # Predicción de riesgo para df_f
 df_f["riesgo"] = model.predict_proba(df_f[["hora", "occupation", "prcp", "tmin", "tmax"]])[:, 1]
 
-# --- 📊 Gráfico de Accidentes vs Ocupación por Hora ---
-st.subheader("📊 Accidentes vs Ocupación por Hora")
+# --- Gráfico de Accidentes vs Ocupación por Hora ---
+st.subheader(" Accidentes vs Ocupación por Hora")
 df_hora = df.groupby("hora").agg({"folio": "count", "occupation": "mean"}).reset_index()
 df_hora.columns = ["hora", "Accidentes", "Ocupación"]
 
@@ -107,11 +106,12 @@ st.pyplot(fig)
 
 
 # --- Mapa de Accidentes Reales ---
-st.subheader("🗺️ Mapa de Accidentes Geolocalizados")
+st.subheader("Mapa de Accidentes Geolocalizados")
 mapa_real = df_f[["latitud", "longitud", "prcp"]].dropna().rename(columns={"latitud": "lat", "longitud": "lon"})
 mapa_real["color"] = mapa_real["prcp"].apply(lambda x: [255, 0, 0] if x > 0 else [0, 120, 255])
 
 st.pydeck_chart(pdk.Deck(
+    map_style=None,
     initial_view_state=pdk.ViewState(latitude=19.43, longitude=-99.13, zoom=10.5),
     layers=[
         pdk.Layer(
@@ -120,12 +120,14 @@ st.pydeck_chart(pdk.Deck(
             get_position='[lon, lat]',
             get_color='color',
             get_radius=60,
+            
         )
+
     ]
 ))
 
 # --- Mapa de Calor de Riesgo Predicho ---
-st.subheader("🗺️ Mapa de Calor de Riesgo Predicho")
+st.subheader(" Mapa de riesgo Total con una bicicleta")
 mapa_riesgo = df_f[["latitud", "longitud", "riesgo"]].dropna().rename(columns={"latitud": "lat", "longitud": "lon"})
 mapa_riesgo["color"] = mapa_riesgo["riesgo"].apply(lambda x: [255, int(255*(1-x)), 0] if x > 0 else [0, 120, 255])
 
@@ -135,6 +137,7 @@ riesgo_min, riesgo_max = st.sidebar.slider("Rango de Riesgo Predictivo", 0.0, 1.
 mapa_riesgo_filtrado = mapa_riesgo[(mapa_riesgo["riesgo"] >= riesgo_min) & (mapa_riesgo["riesgo"] <= riesgo_max)]
 
 st.pydeck_chart(pdk.Deck(
+     map_style=None,
     initial_view_state=pdk.ViewState(latitude=19.43, longitude=-99.13, zoom=10.5),
     layers=[
         pdk.Layer(
@@ -148,11 +151,12 @@ st.pydeck_chart(pdk.Deck(
 ))
 
 # --- Mapa de Calor de Riesgo por Zona ---
-st.subheader("🗺️ Mapa de Calor de Riesgo por Zona")
+st.subheader("Mapa de Riesgo por Zona")
 mapa_zona_riesgo = df_f.groupby(["latitud", "longitud"]).agg({"riesgo": "mean"}).reset_index()
 mapa_zona_riesgo["color"] = mapa_zona_riesgo["riesgo"].apply(lambda x: [255, int(255*(1-x)), 0] if x > 0 else [0, 120, 255])
 
 st.pydeck_chart(pdk.Deck(
+    map_style=None,
     initial_view_state=pdk.ViewState(latitude=19.43, longitude=-99.13, zoom=10.5),
     layers=[
         pdk.Layer(
@@ -164,8 +168,8 @@ st.pydeck_chart(pdk.Deck(
         )
     ]
 ))
-# --- 📌 Métricas Generales ---
-st.subheader("📌 Métricas Generales")
+# ---  Métricas Generales ---
+st.subheader(" Métricas Generales")
 col1, col2, col3 = st.columns(3)
 with col1:
     st.metric("Total accidentes", len(df))  # Total de accidentes (sin filtros)
@@ -173,6 +177,6 @@ with col2:
     st.metric("Accidentes filtrados", len(df_f))  # Accidentes después de los filtros
 with col3:
     st.metric("Ocupación promedio", f"{df_f['occupation'].mean():.2f}")  # Ocupación promedio
-# --- 📄 Ver muestra de datos ---
-with st.expander("📄 Ver muestra de datos"):
+# ---  Ver muestra de datos ---
+with st.expander(" Ver muestra de datos"):
     st.dataframe(df_f[["fecha", "hora", "occupation", "prcp", "latitud", "longitud"]].head(100))

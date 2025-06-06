@@ -28,7 +28,7 @@ st.sidebar.markdown("---")
 # Menú de navegación
 pagina = st.sidebar.selectbox(
     "Selecciona una página:",
-    ["🏠 Inicio", "🚛 Reabastecimiento", "🚨 Accidentes"]
+    ["🏠 Inicio", "🚛 Reabastecimiento", "🚨 Accidentes", "📊 Análisis de Bicicletas"]
 )
 
 # Página de inicio
@@ -47,6 +47,9 @@ if pagina == "🏠 Inicio":
         st.subheader("🚨 Accidentes")
         st.write("Analiza la relación entre accidentes y ocupación de bicicletas.")
         st.info("• Mapas de riesgo\n• Análisis temporal\n• Predicciones ML")
+
+elif pagina == "📊 Análisis de Bicicletas":
+    load_page(".\main.py", "análisis_bicicletas")
 
 # Página de Reabastecimiento
 elif pagina == "🚛 Reabastecimiento":
