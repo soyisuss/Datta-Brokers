@@ -180,3 +180,54 @@ with col3:
 # ---  Ver muestra de datos ---
 with st.expander(" Ver muestra de datos"):
     st.dataframe(df_f[["fecha", "hora", "occupation", "prcp", "latitud", "longitud"]].head(100))
+
+    #------------------------lyon
+
+
+# Cargar los archivos CSV
+accidentes_lyon = pd.read_csv('./data/accidentes_lyon.csv')
+estaciones_lyon = pd.read_csv('./data/lyon_stations.csv')
+# Eliminar accidentes en "Hors agglomération"
+accidentes_lyon = accidentes_lyon[accidentes_lyon["Milieu"] == "En agglomération"]
+
+# Filtrar las estaciones de bicicletas para tener solo latitudes y longitudes
+estaciones_lyon = estaciones_lyon[['lat', 'lon']].drop_duplicates().reset_index(drop=True)
+
+# Corregir la inversión de latitud y longitud
+accidentes_lyon['latitud_correcta'] = accidentes_lyon['Longitude']
+accidentes_lyon['longitud_correcta'] = accidentes_lyon['Latitude']
+
+# Añadir color basado en la zona (En agglomération)
+accidentes_lyon['color'] = accidentes_lyon['Milieu'].apply(lambda x: [255, 0, 0] if x == "En agglomération" else [0, 120, 255])
+
+# Mostrar mapa de accidentes geolocalizados cercanos a estaciones
+st.subheader("Mapa de Accidentes Geolocalizados en Lyon Cercanos a Estaciones de Bicicletas")
+
+# Filtrar los datos para solo mostrar las columnas necesarias
+mapa_real_lyon = accidentes_lyon[['latitud_correcta', 'longitud_correcta', 'color']]
+
+# Mostrar el mapa con pydeck
+st.pydeck_chart(pdk.Deck(
+    map_style=None,
+    initial_view_state=pdk.ViewState(latitude=45.75, longitude=4.85, zoom=12),  # Coordenadas aproximadas de Lyon
+    layers=[
+        pdk.Layer(
+            "ScatterplotLayer",
+            data=mapa_real_lyon,
+            get_position='[longitud_correcta, latitud_correcta]',
+            get_color='color',
+            get_radius=60,
+        )
+    ]
+))
+
+
+estaciones_lyon = pd.read_csv('./data/lyon_stations.csv')
+
+
+# Eliminar columnas con datos vacíos
+estaciones_lyon = estaciones_lyon.dropna(axis=1, how='all')  # Elimina las columnas que solo tienen valores NaN
+
+# Mostrar una muestra de los datos de estaciones en Streamlit
+st.subheader("Muestra de los Datos de Estaciones de Bicicletas en Lyon")
+st.dataframe(estaciones_lyon.head())  # Mostrar las primeras filas del dataset sin columnas vacías
